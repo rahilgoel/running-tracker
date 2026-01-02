@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Run Tracker</title>
+    <style>
+        :root {
+            --primary: #007AFF; /* iOS Blue */
+            --bg: #F2F2F7;
+            --card-bg: #ffffff;
+            --text: #000000;
+            --border: #C6C6C8;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            /* Force full height and prevent page bounce/scroll */
+            height: 100dvh; 
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Header Area */
+        header {
+            padding: 15px 0 10px;
+            text-align: center;
+            background: var(--bg);
+            flex-shrink: 0;
+        }
+
+        h1 { margin: 0; font-size: 1.2rem; font-weight: 700; }
+
+        /* Main container for padding */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 16px 16px 16px;
+            overflow: hidden; /* Contains the scrollable table area */
+            gap: 12px;
+        }
+
+        /* 1. STATS ROW (Horizontal) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 10px 5px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 { 
+            margin: 0 0 4px 0; 
+            font-size: 0.7rem; 
+            color: #8E8E93; 
+            text-transform: uppercase; 
+        }
+        .stat-card .value { 
+            font-size: 1.3rem; 
+            font-weight: 700; 
+            color: var(--primary); 
+            line-height: 1.1;
+        }
+        .stat-card .unit { font-size: 0.7rem; color: #AEAEB2; }
+
+        /* 2. INPUT SECTION (Compact) */
+        .input-section {
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .input-group { flex: 1; }
+        .input-group label { 
+            display: block; 
+            font-size: 0.75rem; 
+            margin-bottom: 4px; 
+            color: #8E8E93; 
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem; /* 16px prevents iOS zoom on focus */
+            background: #f9f9f9;
+            -webkit-appearance: none; /* Removes default iOS shading */
+        }
+
+        button.add-btn {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button.add-btn:active { opacity: 0.8; transform: scale(0.98); }
+
+        /* 3. HISTORY LIST (Scrollable) */
+        .history-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            flex-grow: 1; /* Takes up remaining height */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Prevents outer scroll */
+        }
+
+        .history-header {
+            padding: 12px 12px 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #8E8E93;
+            border-bottom: 1px solid #efefef;
+            flex-shrink: 0;
+        }
+
+        .table-wrapper {
+            overflow-y: auto; /* Internal scrolling */
+            flex: 1;
+            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        
+        td { 
+            padding: 12px; 
+            border-bottom: 1px solid #efefef; 
+            font-size: 0.95rem;
+        }
+        
+        /* Alignments */
+        td:nth-child(1) { width: 40%; color: #333; }
+        td:nth-child(2) { width: 30%; font-weight: 600; }
+        td:nth-child(3) { text-align: right; }
+
+        .delete-btn {
+            color: #FF3B30;
+            background: rgba(255, 59, 48, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Run Tracker</h1>
+</header>
+
+<div class="main-content">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Week</h3>
+            <div class="value" id="weekTotal">0</div>
+            <div class="unit">Miles</div>
+        </div>
+        <div class="stat-card">
+            <h3>Month</h3>
+            <div class="value" id="monthTotal">0</div>
+            <div class="unit">Miles</div>
+        </div>
+        <div class="stat-card">
+            <h3>Year</h3>
+            <div class="value" id="yearTotal">0</div>
+            <div class="unit">Miles</div>
+        </div>
+    </div>
+
+    <div class="input-section">
+        <div class="input-row">
+            <div class="input-group">
+                <label>Date</label>
+                <input type="date" id="dateInput">
+            </div>
+            <div class="input-group">
+                <label>Distance (mi)</label>
+                <input type="number" id="distanceInput" placeholder="0.0" inputmode="decimal" step="0.01">
+            </div>
+        </div>
+        <button class="add-btn" onclick="addRun()">Add Run</button>
+    </div>
+
+    <div class="history-section">
+        <div class="history-header">Recent Activity</div>
+        <div class="table-wrapper">
+            <table id="historyTable">
+                <tbody id="historyBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let runs = JSON.parse(localStorage.getItem('runData')) || [];
+    document.getElementById('dateInput').valueAsDate = new Date();
+
+    function addRun() {
+        const dateVal = document.getElementById('dateInput').value;
+        const distVal = parseFloat(document.getElementById('distanceInput').value);
+
+        if (!dateVal || isNaN(distVal) || distVal <= 0) {
+            alert("Please enter a valid distance.");
+            return;
+        }
+
+        const newRun = { id: Date.now(), date: dateVal, distance: distVal };
+        runs.push(newRun);
+        saveData();
+        render();
+        document.getElementById('distanceInput').value = '';
+    }
+
+    function deleteRun(id) {
+        if(confirm('Delete this entry?')) {
+            runs = runs.filter(run => run.id !== id);
+            saveData();
+            render();
+        }
+    }
+
+    function saveData() { localStorage.setItem('runData', JSON.stringify(runs)); }
+
+    function getWeekStart(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        d.setDate(diff); d.setHours(0,0,0,0);
+        return d;
+    }
+
+    function calculateStats() {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const startOfWeek = getWeekStart(now);
+
+        let week = 0, month = 0, year = 0;
+
+        runs.forEach(run => {
+            const [y, m, d] = run.date.split('-').map(Number);
+            const runDate = new Date(y, m - 1, d);
+            
+            if (runDate >= startOfWeek) week += run.distance;
+            if (runDate.getMonth() === currentMonth && runDate.getFullYear() === currentYear) month += run.distance;
+            if (runDate.getFullYear() === currentYear) year += run.distance;
+        });
+
+        return { week: week.toFixed(1), month: month.toFixed(1), year: year.toFixed(1) };
+    }
+
+    function render() {
+        const stats = calculateStats();
+        document.getElementById('weekTotal').innerText = stats.week;
+        document.getElementById('monthTotal').innerText = stats.month;
+        document.getElementById('yearTotal').innerText = stats.year;
+
+        const tbody = document.getElementById('historyBody');
+        tbody.innerHTML = '';
+
+        [...runs].sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(run => {
+            const row = document.createElement('tr');
+            // Format date slightly nicer: 2024-05-20 -> 5/20
+            const dateParts = run.date.split('-');
+            const shortDate = `${parseInt(dateParts[1])}/${parseInt(dateParts[2])}`;
+            
+            row.innerHTML = `
+                <td>${shortDate}</td>
+                <td>${run.distance} mi</td>
+                <td><button class="delete-btn" onclick="deleteRun(${run.id})">Del</button></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    render();
+</script>
+
+</body>
+</html>
