@@ -310,6 +310,102 @@
             padding: 40px 20px;
             font-size: 0.9rem;
         }
+
+        /* Stats Tab Scrollable */
+        .stats-scroll {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 10px;
+        }
+
+        .chart-section-compact {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            flex-shrink: 0;
+        }
+
+        .chart-title-small {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #8E8E93;
+            margin-bottom: 10px;
+        }
+
+        /* Goal Tracking */
+        .goal-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 12px;
+            flex-shrink: 0;
+        }
+
+        .goal-item {
+            margin-bottom: 12px;
+        }
+        .goal-item:last-child { margin-bottom: 0; }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .goal-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .goal-status {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .goal-status.ahead { background: rgba(52, 199, 89, 0.15); color: #34C759; }
+        .goal-status.behind { background: rgba(255, 59, 48, 0.15); color: #FF3B30; }
+        .goal-status.on-track { background: rgba(0, 122, 255, 0.15); color: #007AFF; }
+
+        .goal-progress-bar {
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .goal-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        .goal-fill.goal-100 { background: linear-gradient(90deg, #34C759, #30D158); }
+        .goal-fill.goal-150 { background: linear-gradient(90deg, #FF9500, #FF9F0A); }
+
+        .goal-baseline {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #333;
+            opacity: 0.5;
+        }
+
+        .goal-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+            font-size: 0.7rem;
+            color: #8E8E93;
+        }
     </style>
 </head>
 <body>
@@ -377,10 +473,23 @@
 
 <!-- Stats Tab -->
 <div id="statsTab" class="tab-content">
-    <div class="chart-section">
-        <div class="chart-title">Weekly Distance (Last 12 Weeks)</div>
-        <div class="chart-container">
+    <div class="stats-scroll">
+        <!-- Goal Tracking -->
+        <div class="goal-section">
+            <div class="chart-title-small">🎯 Yearly Goals</div>
+            <div id="goalTracking"></div>
+        </div>
+
+        <!-- Weekly Chart -->
+        <div class="chart-section-compact">
+            <div class="chart-title-small">Weekly Distance (Last 12 Weeks)</div>
             <div id="weeklyChart" class="bar-chart"></div>
+        </div>
+
+        <!-- Monthly Chart -->
+        <div class="chart-section-compact">
+            <div class="chart-title-small">Monthly Distance (This Year)</div>
+            <div id="monthlyChart" class="bar-chart"></div>
         </div>
     </div>
 </div>
@@ -400,7 +509,9 @@
         } else {
             document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
             document.getElementById('statsTab').classList.add('active');
+            renderGoalTracking();
             renderWeeklyChart();
+            renderMonthlyChart();
         }
     }
 
@@ -583,6 +694,106 @@
             `;
             tbody.appendChild(row);
         });
+    }
+
+    function getMonthlyData() {
+        const months = [];
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        for (let m = 0; m < 12; m++) {
+            let total = 0;
+            runs.forEach(run => {
+                const [y, month, d] = run.date.split('-').map(Number);
+                if (y === currentYear && month - 1 === m) {
+                    total += run.distance;
+                }
+            });
+            months.push({ label: monthNames[m], total: total });
+        }
+        return months;
+    }
+
+    function renderMonthlyChart() {
+        const chartContainer = document.getElementById('monthlyChart');
+        const monthlyData = getMonthlyData();
+        
+        if (runs.length === 0) {
+            chartContainer.innerHTML = '<div class="no-data">No data yet</div>';
+            return;
+        }
+        
+        const maxValue = Math.max(...monthlyData.map(m => m.total), 1);
+        
+        chartContainer.innerHTML = monthlyData.map(month => `
+            <div class="bar-row">
+                <div class="bar-label">${month.label}</div>
+                <div class="bar-wrapper">
+                    <div class="bar-fill" style="width: ${(month.total / maxValue) * 100}%; background: linear-gradient(90deg, #FF9500, #FF9F0A);"></div>
+                </div>
+                <div class="bar-value">${month.total.toFixed(1)} mi</div>
+            </div>
+        `).join('');
+    }
+
+    function renderGoalTracking() {
+        const container = document.getElementById('goalTracking');
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        
+        // Calculate day of year
+        const startOfYear = new Date(currentYear, 0, 1);
+        const dayOfYear = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000)) + 1;
+        const daysInYear = ((currentYear % 4 === 0 && currentYear % 100 !== 0) || currentYear % 400 === 0) ? 366 : 365;
+        
+        // Get year total
+        let yearTotal = 0;
+        runs.forEach(run => {
+            const [y] = run.date.split('-').map(Number);
+            if (y === currentYear) yearTotal += run.distance;
+        });
+        
+        const goals = [
+            { target: 100, label: '100 Miles', colorClass: 'goal-100' },
+            { target: 150, label: '150 Miles', colorClass: 'goal-150' }
+        ];
+        
+        container.innerHTML = goals.map(goal => {
+            const expectedPace = (goal.target / daysInYear) * dayOfYear;
+            const progress = (yearTotal / goal.target) * 100;
+            const baselinePercent = (expectedPace / goal.target) * 100;
+            const diff = yearTotal - expectedPace;
+            
+            let statusClass, statusText;
+            if (diff > 1) {
+                statusClass = 'ahead';
+                statusText = `+${diff.toFixed(1)} mi ahead`;
+            } else if (diff < -1) {
+                statusClass = 'behind';
+                statusText = `${Math.abs(diff).toFixed(1)} mi behind`;
+            } else {
+                statusClass = 'on-track';
+                statusText = 'On track';
+            }
+            
+            return `
+                <div class="goal-item">
+                    <div class="goal-header">
+                        <span class="goal-label">${goal.label}</span>
+                        <span class="goal-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="goal-progress-bar">
+                        <div class="goal-fill ${goal.colorClass}" style="width: ${Math.min(progress, 100)}%"></div>
+                        <div class="goal-baseline" style="left: ${baselinePercent}%"></div>
+                    </div>
+                    <div class="goal-details">
+                        <span>${yearTotal.toFixed(1)} / ${goal.target} mi</span>
+                        <span>Expected: ${expectedPace.toFixed(1)} mi</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
     function downloadCSV() {
