@@ -175,6 +175,20 @@
             font-size: 0.8rem;
             font-weight: 600;
         }
+
+        .download-btn {
+            width: 100%;
+            background-color: #34C759;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .download-btn:active { opacity: 0.8; transform: scale(0.98); }
     </style>
 </head>
 <body>
@@ -214,6 +228,7 @@
             </div>
         </div>
         <button class="add-btn" onclick="addRun()">Add Run</button>
+        <button class="download-btn" onclick="downloadCSV()">Download Data</button>
     </div>
 
     <div class="history-section">
@@ -307,6 +322,37 @@
             `;
             tbody.appendChild(row);
         });
+    }
+
+    function downloadCSV() {
+        if (runs.length === 0) {
+            alert('No data to download.');
+            return;
+        }
+
+        // Sort runs by date (oldest first) for the export
+        const sortedRuns = [...runs].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        // Create CSV content
+        let csvContent = 'Date,Distance (miles)\n';
+        sortedRuns.forEach(run => {
+            csvContent += `${run.date},${run.distance}\n`;
+        });
+
+        // Create blob and download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        
+        // Create temporary link and trigger download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `running_data_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up the URL object
+        URL.revokeObjectURL(url);
     }
 
     render();
