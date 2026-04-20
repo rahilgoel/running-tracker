@@ -226,6 +226,10 @@
                 <label>Distance (mi)</label>
                 <input type="number" id="distanceInput" placeholder="0.0" inputmode="decimal" step="0.01">
             </div>
+            <div class="input-group">
+                <label>Duration (min)</label>
+                <input type="number" id="durationInput" placeholder="0" inputmode="decimal" step="0.1">
+            </div>
         </div>
         <button class="add-btn" onclick="addRun()">Add Run</button>
         <button class="download-btn" onclick="downloadCSV()">Download Data</button>
@@ -249,17 +253,19 @@
     function addRun() {
         const dateVal = document.getElementById('dateInput').value;
         const distVal = parseFloat(document.getElementById('distanceInput').value);
+        const durVal = parseFloat(document.getElementById('durationInput').value) || 0;
 
         if (!dateVal || isNaN(distVal) || distVal <= 0) {
             alert("Please enter a valid distance.");
             return;
         }
 
-        const newRun = { id: Date.now(), date: dateVal, distance: distVal };
+        const newRun = { id: Date.now(), date: dateVal, distance: distVal, duration: durVal };
         runs.push(newRun);
         saveData();
         render();
         document.getElementById('distanceInput').value = '';
+        document.getElementById('durationInput').value = '';
     }
 
     function deleteRun(id) {
@@ -314,10 +320,12 @@
             // Format date slightly nicer: 2024-05-20 -> 5/20
             const dateParts = run.date.split('-');
             const shortDate = `${parseInt(dateParts[1])}/${parseInt(dateParts[2])}`;
+            // Format duration display
+            const durationDisplay = run.duration ? `${run.duration}m` : '';
             
             row.innerHTML = `
                 <td>${shortDate}</td>
-                <td>${run.distance} mi</td>
+                <td>${run.distance} mi ${durationDisplay}</td>
                 <td><button class="delete-btn" onclick="deleteRun(${run.id})">Del</button></td>
             `;
             tbody.appendChild(row);
@@ -334,9 +342,9 @@
         const sortedRuns = [...runs].sort((a, b) => new Date(a.date) - new Date(b.date));
 
         // Create CSV content
-        let csvContent = 'Date,Distance (miles)\n';
+        let csvContent = 'Date,Distance (miles),Duration (minutes)\n';
         sortedRuns.forEach(run => {
-            csvContent += `${run.date},${run.distance}\n`;
+            csvContent += `${run.date},${run.distance},${run.duration || 0}\n`;
         });
 
         // Create blob and download link
