@@ -111,6 +111,14 @@
             line-height: 1.1;
         }
         .stat-card .unit { font-size: 0.7rem; color: #AEAEB2; }
+        .stat-card .change { 
+            font-size: 0.65rem; 
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .stat-card .change.up { color: #34C759; }
+        .stat-card .change.down { color: #FF3B30; }
+        .stat-card .change.neutral { color: #8E8E93; }
 
         /* 2. INPUT SECTION (Compact) */
         .input-section {
@@ -323,11 +331,13 @@
             <h3>Week</h3>
             <div class="value" id="weekTotal">0</div>
             <div class="unit">Miles</div>
+            <div class="change neutral" id="weekChange">--</div>
         </div>
         <div class="stat-card">
             <h3>Month</h3>
             <div class="value" id="monthTotal">0</div>
             <div class="unit">Miles</div>
+            <div class="change neutral" id="monthChange">--</div>
         </div>
         <div class="stat-card">
             <h3>Year</h3>
@@ -435,19 +445,46 @@
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth();
         const startOfWeek = getWeekStart(now);
+        
+        // Last week calculation
+        const startOfLastWeek = new Date(startOfWeek.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const endOfLastWeek = new Date(startOfWeek.getTime() - 1);
+        
+        // Last month calculation
+        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
-        let week = 0, month = 0, year = 0;
+        let week = 0, lastWeek = 0, month = 0, lastMonthTotal = 0, year = 0;
 
         runs.forEach(run => {
             const [y, m, d] = run.date.split('-').map(Number);
             const runDate = new Date(y, m - 1, d);
             
+            // Current week
             if (runDate >= startOfWeek) week += run.distance;
+            // Last week
+            if (runDate >= startOfLastWeek && runDate <= endOfLastWeek) lastWeek += run.distance;
+            // Current month
             if (runDate.getMonth() === currentMonth && runDate.getFullYear() === currentYear) month += run.distance;
+            // Last month
+            if (runDate.getMonth() === lastMonth && runDate.getFullYear() === lastMonthYear) lastMonthTotal += run.distance;
+            // Year
             if (runDate.getFullYear() === currentYear) year += run.distance;
         });
 
-        return { week: week.toFixed(1), month: month.toFixed(1), year: year.toFixed(1) };
+        // Calculate percentage changes
+        const weekChange = lastWeek > 0 ? ((week - lastWeek) / lastWeek * 100) : (week > 0 ? 100 : 0);
+        const monthChange = lastMonthTotal > 0 ? ((month - lastMonthTotal) / lastMonthTotal * 100) : (month > 0 ? 100 : 0);
+
+        return { 
+            week: week.toFixed(1), 
+            month: month.toFixed(1), 
+            year: year.toFixed(1),
+            weekChange: weekChange,
+            monthChange: monthChange,
+            lastWeek: lastWeek,
+            lastMonthTotal: lastMonthTotal
+        };
     }
 
     function getWeeklyData(numWeeks = 12) {
@@ -504,11 +541,31 @@
         `).join('');
     }
 
+    function formatChange(change, hasPreviousData) {
+        if (!hasPreviousData) return { text: '--', class: 'neutral' };
+        const rounded = Math.round(change);
+        if (rounded > 0) return { text: `↑ ${rounded}%`, class: 'up' };
+        if (rounded < 0) return { text: `↓ ${Math.abs(rounded)}%`, class: 'down' };
+        return { text: '0%', class: 'neutral' };
+    }
+
     function render() {
         const stats = calculateStats();
         document.getElementById('weekTotal').innerText = stats.week;
         document.getElementById('monthTotal').innerText = stats.month;
         document.getElementById('yearTotal').innerText = stats.year;
+
+        // Update week change
+        const weekChangeEl = document.getElementById('weekChange');
+        const weekChangeData = formatChange(stats.weekChange, stats.lastWeek > 0 || parseFloat(stats.week) > 0);
+        weekChangeEl.innerText = weekChangeData.text;
+        weekChangeEl.className = 'change ' + weekChangeData.class;
+
+        // Update month change
+        const monthChangeEl = document.getElementById('monthChange');
+        const monthChangeData = formatChange(stats.monthChange, stats.lastMonthTotal > 0 || parseFloat(stats.month) > 0);
+        monthChangeEl.innerText = monthChangeData.text;
+        monthChangeEl.className = 'change ' + monthChangeData.class;
 
         const tbody = document.getElementById('historyBody');
         tbody.innerHTML = '';
