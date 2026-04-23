@@ -90,10 +90,13 @@
             <div class="input-row">
                 <div class="input-group" style="flex:2">
                     <label>Exercise</label>
-                    <select id="exerciseSelect" onchange="onExerciseSelectChange()">
-                        <option value="">-- Pick or add new --</option>
-                        <option value="__new__">+ New exercise…</option>
-                    </select>
+                    <div class="exercise-select-row">
+                        <select id="exerciseSelect" onchange="onExerciseSelectChange()">
+                            <option value="">-- Pick or add new --</option>
+                            <option value="__new__">+ New exercise…</option>
+                        </select>
+                        <button class="delete-exercise-btn" onclick="deleteSelectedExercise()" title="Remove from list">✕</button>
+                    </div>
                     <input type="text" id="exerciseNameInput" placeholder="Type exercise name" style="display:none; margin-top:6px;" autocomplete="off">
                 </div>
             </div>

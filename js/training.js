@@ -124,6 +124,22 @@ function saveWorkoutSession() {
     renderWorkoutHistory();
 }
 
+// Delete the currently selected exercise from the saved list
+function deleteSelectedExercise() {
+    const select = document.getElementById('exerciseSelect');
+    const name = select.value;
+    if (!name || name === '__new__') {
+        alert('Select an exercise to remove.');
+        return;
+    }
+    if (confirm('Remove "' + name + '" from the list?')) {
+        savedExercises = savedExercises.filter(e => e !== name);
+        saveTrainingData();
+        select.value = '';
+        populateExerciseDropdown();
+    }
+}
+
 // Rebuild savedExercises from all remaining workouts and current session
 function rebuildSavedExercises() {
     const allNames = new Set();
