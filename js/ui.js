@@ -27,16 +27,25 @@ function render() {
 }
 
 // Render the history table
+// Pagination state for history table
+let historyPage = 1;
+const HISTORY_PAGE_SIZE = 20;
+
 function renderHistoryTable() {
     const tbody = document.getElementById('historyBody');
     tbody.innerHTML = '';
 
-    [...runs].sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(run => {
+    // Sort runs by date descending
+    const sortedRuns = [...runs].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const total = sortedRuns.length;
+    const shown = HISTORY_PAGE_SIZE * historyPage;
+    const visibleRuns = sortedRuns.slice(0, shown);
+
+    visibleRuns.forEach(run => {
         const row = document.createElement('tr');
         const dateParts = run.date.split('-');
         const shortDate = `${parseInt(dateParts[1])}/${parseInt(dateParts[2])}`;
         const durationDisplay = run.duration ? `${run.duration}m` : '';
-        
         row.innerHTML = `
             <td>${shortDate}</td>
             <td>${run.distance} mi ${durationDisplay}</td>
@@ -44,6 +53,34 @@ function renderHistoryTable() {
         `;
         tbody.appendChild(row);
     });
+
+    // Show/hide Load More button
+    const loadMoreBtn = document.getElementById('historyLoadMore');
+    if (loadMoreBtn) {
+        if (total > visibleRuns.length) {
+            loadMoreBtn.style.display = '';
+        } else {
+            loadMoreBtn.style.display = 'none';
+        }
+    }
+}
+
+// Handler for Load More button
+function loadMoreHistory() {
+    historyPage++;
+    renderHistoryTable();
+}
+
+// Reset pagination when adding/deleting runs or switching tabs
+function resetHistoryPagination() {
+    historyPage = 1;
+}
+
+// Patch render() to reset pagination
+const _origRender = render;
+render = function() {
+    resetHistoryPagination();
+    _origRender();
 }
 
 // Tab switching function
