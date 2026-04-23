@@ -105,9 +105,14 @@ function renderPaceChart() {
     }
 
     const paces = paceData.map(d => d.pace);
-    const minPace = Math.min(...paces);
-    const maxPace = Math.max(...paces);
-    const range = maxPace - minPace || 1;
+    const rawMin = Math.min(...paces);
+    const rawMax = Math.max(...paces);
+
+    // Snap axis bounds to 10-second (1/6 minute) intervals
+    const step = 10 / 60; // 10 seconds in minutes
+    const minPace = Math.floor(rawMin / step) * step;
+    const maxPace = Math.ceil(rawMax / step) * step;
+    const range = maxPace - minPace || step;
 
     // Chart dimensions
     const width = container.clientWidth || 300;
@@ -126,11 +131,10 @@ function renderPaceChart() {
         return { x, y, pace: d.pace, date: d.date };
     });
 
-    // Y-axis ticks (4 ticks)
+    // Y-axis ticks at every 10-second interval
     const yTicks = [];
-    for (let i = 0; i <= 3; i++) {
-        const val = maxPace - (i / 3) * range;
-        const y = padTop + (i / 3) * chartH;
+    for (let val = maxPace; val >= minPace - 0.001; val -= step) {
+        const y = padTop + ((maxPace - val) / range) * chartH;
         const mins = Math.floor(val);
         const secs = Math.round((val - mins) * 60);
         yTicks.push({ y, label: `${mins}:${secs.toString().padStart(2, '0')}` });
