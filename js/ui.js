@@ -65,7 +65,9 @@ function switchTab(tab) {
 function addRun() {
     const dateVal = document.getElementById('dateInput').value;
     const distVal = parseFloat(document.getElementById('distanceInput').value);
-    const durVal = parseFloat(document.getElementById('durationInput').value) || 0;
+    const mins = parseInt(document.getElementById('durationMin').value) || 0;
+    const secs = parseInt(document.getElementById('durationSec').value) || 0;
+    const durVal = mins + secs / 60;
 
     if (!dateVal || isNaN(distVal) || distVal <= 0) {
         alert("Please enter a valid distance.");
@@ -77,7 +79,8 @@ function addRun() {
     
     // Clear input fields
     document.getElementById('distanceInput').value = '';
-    document.getElementById('durationInput').value = '';
+    document.getElementById('durationMin').value = '';
+    document.getElementById('durationSec').value = '';
 }
 
 // Delete run handler
