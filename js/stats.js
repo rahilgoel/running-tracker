@@ -134,6 +134,17 @@ function getGoalData() {
     };
 }
 
+// Get pace data (min/mile) over time for runs that have duration
+function getPaceData() {
+    return runs
+        .filter(run => run.duration && run.duration > 0 && run.distance > 0)
+        .map(run => ({
+            date: run.date,
+            pace: run.duration / run.distance
+        }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+}
+
 // Format percentage change for display
 function formatChange(change, hasPreviousData) {
     if (!hasPreviousData) return { text: '--', class: 'neutral' };

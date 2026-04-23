@@ -397,3 +397,18 @@ td:nth-child(3) { text-align: right; }
     font-size: 0.7rem;
     color: #8E8E93;
 }
+
+/* Pace Line Chart */
+.line-chart-container {
+    width: 100%;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.line-chart-container svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
