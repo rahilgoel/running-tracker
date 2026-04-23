@@ -50,12 +50,17 @@ function renderHistoryTable() {
 function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    
+
+    const tabs = { home: 0, training: 1, stats: 2 };
+    const index = tabs[tab] || 0;
+    document.querySelectorAll('.tab-btn')[index].classList.add('active');
+
     if (tab === 'home') {
-        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
         document.getElementById('homeTab').classList.add('active');
+    } else if (tab === 'training') {
+        document.getElementById('trainingTab').classList.add('active');
+        initTrainingTab();
     } else {
-        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
         document.getElementById('statsTab').classList.add('active');
         renderAllCharts();
     }

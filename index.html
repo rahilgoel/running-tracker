@@ -11,12 +11,13 @@
 <body>
 
 <header>
-    <h1>Running Tracker</h1>
+    <h1>Fitness Tracker</h1>
 </header>
 
 <!-- Tab Navigation -->
 <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('home')">Home</button>
+    <button class="tab-btn active" onclick="switchTab('home')">Run</button>
+    <button class="tab-btn" onclick="switchTab('training')">Training</button>
     <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
 </div>
 
@@ -77,6 +78,59 @@
 
 <!-- Stats Tab -->
 <div id="statsTab" class="tab-content">
+
+<!-- Training Tab -->
+<div id="trainingTab" class="tab-content">
+    <div class="training-scroll">
+        <!-- Session Input -->
+        <div class="input-section">
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Date</label>
+                    <input type="date" id="trainingDateInput">
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="input-group" style="flex:2">
+                    <label>Exercise</label>
+                    <input type="text" id="exerciseNameInput" list="exerciseList" placeholder="e.g. DB Chest Press" autocomplete="off">
+                    <datalist id="exerciseList"></datalist>
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Sets</label>
+                    <input type="number" id="exerciseSets" placeholder="3" inputmode="numeric" min="1">
+                </div>
+                <div class="input-group">
+                    <label>Reps</label>
+                    <input type="text" id="exerciseReps" placeholder="10" inputmode="text">
+                </div>
+                <div class="input-group">
+                    <label>Weight</label>
+                    <input type="text" id="exerciseWeight" placeholder="lbs / BW" inputmode="text">
+                </div>
+            </div>
+            <button class="add-btn" onclick="addExerciseToSession()">+ Add Exercise</button>
+        </div>
+
+        <!-- Current Session -->
+        <div class="training-card">
+            <div class="training-card-title">Current Session</div>
+            <div id="currentSessionBody"></div>
+            <button class="save-session-btn" onclick="saveWorkoutSession()">Save Workout</button>
+        </div>
+
+        <!-- Workout History -->
+        <div class="training-card">
+            <div class="training-card-title">Workout History</div>
+            <div id="workoutHistoryBody"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Tab (continued) -->
+<div id="statsTab" class="tab-content">
     <div class="stats-scroll">
         <!-- Goal Tracking -->
         <div class="goal-section">
@@ -108,6 +162,7 @@
 <script src="js/data.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/charts.js"></script>
+<script src="js/training.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
 
