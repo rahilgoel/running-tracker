@@ -93,7 +93,9 @@ function addExerciseToSession() {
 // Remove exercise from current session
 function removeSessionExercise(index) {
     currentSessionExercises.splice(index, 1);
+    rebuildSavedExercises();
     renderCurrentSession();
+    populateExerciseDropdown();
 }
 
 // Save the full session as a workout
@@ -122,12 +124,22 @@ function saveWorkoutSession() {
     renderWorkoutHistory();
 }
 
+// Rebuild savedExercises from all remaining workouts and current session
+function rebuildSavedExercises() {
+    const allNames = new Set();
+    workouts.forEach(w => w.exercises.forEach(ex => allNames.add(ex.name)));
+    currentSessionExercises.forEach(ex => allNames.add(ex.name));
+    savedExercises = [...allNames];
+    saveTrainingData();
+}
+
 // Delete a saved workout
 function deleteWorkout(id) {
     if (confirm('Delete this workout?')) {
         workouts = workouts.filter(w => w.id !== id);
-        saveTrainingData();
+        rebuildSavedExercises();
         renderWorkoutHistory();
+        populateExerciseDropdown();
     }
 }
 
