@@ -26,10 +26,32 @@ function saveExerciseName(name) {
     }
 }
 
+// Handle exercise select dropdown change
+function onExerciseSelectChange() {
+    const select = document.getElementById('exerciseSelect');
+    const textInput = document.getElementById('exerciseNameInput');
+    if (select.value === '__new__') {
+        textInput.style.display = 'block';
+        textInput.value = '';
+        textInput.focus();
+    } else {
+        textInput.style.display = 'none';
+        textInput.value = '';
+    }
+}
+
 // Add exercise to current session
 function addExerciseToSession() {
-    const nameInput = document.getElementById('exerciseNameInput');
-    const name = nameInput.value.trim();
+    const select = document.getElementById('exerciseSelect');
+    const textInput = document.getElementById('exerciseNameInput');
+    let name = '';
+
+    if (select.value === '__new__') {
+        name = textInput.value.trim();
+    } else if (select.value) {
+        name = select.value;
+    }
+
     const sets = parseInt(document.getElementById('exerciseSets').value) || 0;
     const reps = document.getElementById('exerciseReps').value.trim();
     const weight = document.getElementById('exerciseWeight').value.trim();
@@ -56,8 +78,10 @@ function addExerciseToSession() {
         weight: weight || 'BW'
     });
 
-    // Clear inputs except date
-    nameInput.value = '';
+    // Clear inputs
+    select.value = '';
+    textInput.value = '';
+    textInput.style.display = 'none';
     document.getElementById('exerciseSets').value = '';
     document.getElementById('exerciseReps').value = '';
     document.getElementById('exerciseWeight').value = '';
@@ -107,12 +131,20 @@ function deleteWorkout(id) {
     }
 }
 
-// Populate the exercise name datalist from saved exercises
+// Populate the exercise select dropdown from saved exercises
 function populateExerciseDropdown() {
-    const datalist = document.getElementById('exerciseList');
-    datalist.innerHTML = savedExercises
-        .map(name => `<option value="${name}">`)
-        .join('');
+    const select = document.getElementById('exerciseSelect');
+    // Keep the first two static options, rebuild the rest
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">-- Pick or add new --</option>'
+        + savedExercises.map(name =>
+            `<option value="${name}">${name}</option>`
+        ).join('')
+        + '<option value="__new__">+ New exercise…</option>';
+    // Restore selection if it still exists
+    if (currentVal && currentVal !== '__new__') {
+        select.value = currentVal;
+    }
 }
 
 // Render the current session exercise list

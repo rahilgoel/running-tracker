@@ -90,8 +90,11 @@
             <div class="input-row">
                 <div class="input-group" style="flex:2">
                     <label>Exercise</label>
-                    <input type="text" id="exerciseNameInput" list="exerciseList" placeholder="e.g. DB Chest Press" autocomplete="off">
-                    <datalist id="exerciseList"></datalist>
+                    <select id="exerciseSelect" onchange="onExerciseSelectChange()">
+                        <option value="">-- Pick or add new --</option>
+                        <option value="__new__">+ New exercise…</option>
+                    </select>
+                    <input type="text" id="exerciseNameInput" placeholder="Type exercise name" style="display:none; margin-top:6px;" autocomplete="off">
                 </div>
             </div>
             <div class="input-row">
@@ -101,11 +104,11 @@
                 </div>
                 <div class="input-group">
                     <label>Reps</label>
-                    <input type="text" id="exerciseReps" placeholder="10" inputmode="text">
+                    <input type="tel" id="exerciseReps" placeholder="10" pattern="[0-9]*">
                 </div>
                 <div class="input-group">
                     <label>Weight</label>
-                    <input type="text" id="exerciseWeight" placeholder="lbs / BW" inputmode="text">
+                    <input type="tel" id="exerciseWeight" placeholder="lbs" pattern="[0-9.]*">
                 </div>
             </div>
             <button class="add-btn" onclick="addExerciseToSession()">+ Add Exercise</button>
